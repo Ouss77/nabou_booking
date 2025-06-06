@@ -1,3 +1,4 @@
+import Footer from "@/Components/LandingPage/Footer";
 import Header from "@/Components/LandingPage/Header";
 import Hero from "@/Components/LandingPage/Hero";
 import Image from "next/image";
@@ -9,7 +10,7 @@ export default function Home() {
 <>
     <Header />
     <Hero />
-
+    <Footer />
 </>
   );
 }

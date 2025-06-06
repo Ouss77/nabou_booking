@@ -84,7 +84,7 @@ function FormBooking({
     <div>
       <form
         onSubmit={handleSubmit}
-        className="max-w-md mx-auto p-6 rounded-xl shadow-md space-y-4"
+        className="max-w-md mx-auto p-6 rounded-xl shadow-md text-white space-y-4"
       >
         <h2 className="text-2xl font-bold text-center">Booking Form</h2>
 
@@ -97,7 +97,7 @@ function FormBooking({
             value={customerInfo.name}
             onChange={handleChange}
             placeholder="Enter your full name"
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
+            className="w-full px-4 py-2 border text-black border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
           />
         </div>
 
@@ -110,7 +110,7 @@ function FormBooking({
             value={customerInfo.email}
             onChange={handleChange}
             placeholder="Enter your email"
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
+            className="w-full px-4 py-2 border text-black border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
           />
         </div>
 
@@ -123,7 +123,7 @@ function FormBooking({
             value={customerInfo.phone}
             onChange={handleChange}
             placeholder="Enter your phone number"
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
+            className="w-full px-4 py-2 border text-black border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
           />
         </div>
 

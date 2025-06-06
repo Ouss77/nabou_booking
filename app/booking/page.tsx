@@ -14,6 +14,37 @@ interface Store {
   barbers: string[];
 }
 
+// Add function to get default barber based on availability
+const getDefaultBarber = async (storeId: string, barbers: string[]): Promise<string> => {
+  if (!barbers || barbers.length === 0) return "";
+  
+  try {
+    // Get today's date
+    const today = new Date().toISOString().split('T')[0];
+    
+    // Get all appointments for today for each barber
+    const { data: appointments } = await supabase
+      .from("appointments")
+      .select("barber, time")
+      .eq("store_id", storeId)
+      .eq("date", today);
+
+    // Count appointments per barber
+    const appointmentCounts = barbers.reduce((acc, barber) => {
+      acc[barber] = (appointments || []).filter(apt => apt.barber === barber).length;
+      return acc;
+    }, {} as Record<string, number>);
+
+    // Return the barber with the least appointments
+    return barbers.reduce((a, b) => 
+      (appointmentCounts[a] || 0) <= (appointmentCounts[b] || 0) ? a : b
+    );
+  } catch (error) {
+    console.error("Error getting default barber:", error);
+    return barbers[0]; // Fallback to first barber
+  }
+};
+
 const timeSlots = [
   "9:00", "9:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30",
   "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30",
@@ -35,6 +66,7 @@ export default function BookingPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [bookedSlots, setBookedSlots] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [isDefaultBarber, setIsDefaultBarber] = useState(true);
 
   useEffect(() => {
     if (storeId) {
@@ -44,6 +76,18 @@ export default function BookingPage() {
       setError("Missing store ID");
     }
   }, [storeId]);
+
+  useEffect(() => {
+    const setInitialBarber = async () => {
+      if (store?.barbers && store.barbers.length > 0 && !selectedBarber) {
+        const defaultBarber = await getDefaultBarber(storeId!, store.barbers);
+        setSelectedBarber(defaultBarber);
+        setIsDefaultBarber(true);
+      }
+    };
+
+    setInitialBarber();
+  }, [store]);
 
   useEffect(() => {
     if (selectedDate && selectedBarber) {
@@ -199,21 +243,29 @@ export default function BookingPage() {
                 <User className="h-5 w-5" />
                 Select Your Barber
               </h2>
-              <select
-                className="w-full bg-gray-800 border border-gray-600 text-white rounded p-2"
-                value={selectedBarber}
-                onChange={(e) => {
-                  setSelectedBarber(e.target.value);
-                  setSelectedTime("");
-                }}
-              >
-                <option value="">Choose a barber</option>
-                {store.barbers?.map((barber) => (
-                  <option key={barber} value={barber}>
-                    {barber}
-                  </option>
-                ))}
-              </select>
+              <div className="space-y-2">
+                <select
+                  className="w-full bg-gray-800 border border-gray-600 text-white rounded p-2"
+                  value={selectedBarber}
+                  onChange={(e) => {
+                    setSelectedBarber(e.target.value);
+                    setSelectedTime("");
+                    setIsDefaultBarber(false);
+                  }}
+                >
+                  <option value="">Choose a barber</option>
+                  {store.barbers?.map((barber) => (
+                    <option key={barber} value={barber}>
+                      {barber} {isDefaultBarber && barber === selectedBarber ? "(Recommended)" : ""}
+                    </option>
+                  ))}
+                </select>
+                {isDefaultBarber && selectedBarber && (
+                  <p className="text-sm text-gray-400">
+                    This is our recommended barber based on current availability. Feel free to choose another if you prefer.
+                  </p>
+                )}
+              </div>
             </div>
 
             <div className="bg-gray-900 border border-gray-700 rounded-lg overflow-hidden">

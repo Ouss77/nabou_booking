@@ -4,22 +4,8 @@ import { supabase } from '@/lib/supabaseClient';
 import Link from 'next/link';
 import { Eye, Edit, Trash2, Loader2 } from 'lucide-react';
 
-interface Service {
-  name: string;
-}
-
-interface Store {
-  id: string;
-  title: string;
-  address: string;
-  description: string;
-  images: string[];
-  services: Service[];
-  barbers: string[];
-}
-
 const StoresTable = () => {
-  const [stores, setStores] = useState<Store[]>([]);
+  const [stores, setStores] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -36,12 +22,12 @@ const StoresTable = () => {
     if (error) {
       console.error('Error fetching stores:', error.message);
     } else {
-      setStores(data || []);
+      setStores(data);
     }
     setLoading(false);
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id:any) => {
     const confirmed = window.confirm('Are you sure you want to delete this store?');
     if (!confirmed) return;
 
@@ -52,8 +38,6 @@ const StoresTable = () => {
       setStores((prev) => prev.filter((store) => store.id !== id));
     }
   };
-
-  // ... rest of the component remains the same ...
 
   if (loading) {
     return (

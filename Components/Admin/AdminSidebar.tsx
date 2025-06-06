@@ -6,7 +6,7 @@ import {
   LayoutDashboardIcon, 
   ScissorsIcon,
   SettingsIcon,
-  StoreIcon,
+  StoreIcon, 
   UsersIcon
 } from 'lucide-react'
 

@@ -1,15 +1,23 @@
 "use client"
 
+import React from "react"
 import { useState, useEffect } from "react"
 import AdminSidebar from "@/Components/Admin/AdminSidebar"
 import { supabase } from "@/lib/supabaseClient"
 import { AppointmentsTable } from "@/Components/Admin/AppointmentsTable"
-import { Search, Filter, Plus, RefreshCw, AlertCircle } from "lucide-react"
+import { Search, Filter, Plus, RefreshCw, AlertCircle, Menu, X } from "lucide-react"
 import {AddAppointmentModal} from "@/Components/Admin/AddAppointmentModal"
 import {filteredAndSortedAppointments, getAllBarbers, handleSort, handleAppointmentUpdate, handleAppointmentDelete, getAppointmentStatus, getAppointmentsAndStores} from "@/utils/appointmentsAdminUtils"
 
+// Types and interfaces
 type SortField = "date" | "time" | "customer_name" | "store_name" | "service_name" | "barber" | "created_at"
 type SortOrder = "asc" | "desc"
+
+interface Store {
+  id: string
+  title: string
+  barbers?: string[]
+}
 
 interface Filters {
   search: string
@@ -19,6 +27,7 @@ interface Filters {
   dateFrom: string
   dateTo: string 
 }
+
 interface Appointment {
   id: string
   customer_name: string
@@ -26,11 +35,12 @@ interface Appointment {
   customer_phone: string
   store_name?: string
   service_name: string
+  service_price?: number
   barber: string
   store_id: string
   date: string
+  time?: string
   created_at: string
-  // ...any other fields
 }
 
 export default function AdminAppointmentsPage() {
@@ -39,6 +49,7 @@ export default function AdminAppointmentsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [sortField, setSortField] = useState<SortField>("created_at")
   const [sortOrder, setSortOrder] = useState<SortOrder>("desc")
   const [filters, setFilters] = useState<Filters>({
@@ -49,6 +60,24 @@ export default function AdminAppointmentsPage() {
     dateFrom: "",
     dateTo: "",
   })
+
+  const handleFilterChange = (field: keyof Filters, value: string) => {
+    setFilters(prev => ({
+      ...prev,
+      [field]: value
+    }))
+  }
+
+  const clearFilters = () => {
+    setFilters({
+      search: "",
+      status: "all",
+      store: "all",
+      barber: "all",
+      dateFrom: "",
+      dateTo: "",
+    })
+  }
 
   const fetchData = async () => {
     setLoading(true)
@@ -69,25 +98,42 @@ export default function AdminAppointmentsPage() {
   useEffect(() => {
   fetchData()
 }, [])
-
-
   const filteredAppointments = filteredAndSortedAppointments(appointments, filters, sortField, sortOrder)
   const activeFiltersCount = Object.values(filters).filter((value) => value && value !== "all").length
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white flex">
-      <h1>heeeeeeeeey</h1>
+    <div className="min-h-screen bg-gray-900 text-white flex relative">
+      {/* Mobile Sidebar Toggle */}
+      <>
+            <button 
+        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+        className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bg-gray-800 text-white hover:bg-gray-700"
+      >
+        {isSidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+      </button>
+
       {/* Sidebar */}
-      <div className="fixed inset-y-0 left-0 z-10 w-64">
-        <AdminSidebar active={"appointments"} />
+      <div className={`${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 fixed lg:relative z-40 w-64 transition-transform duration-300 ease-in-out`}>
+        <AdminSidebar active="Appointments" />
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 ml-40 p-4 md:p-6 lg:p-8">
+      {/* Overlay */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
+      </>
+
+{/* Main Content */}
+      <div className="flex-1 w-full px-4 py-6 sm:px-6 lg:px-8">
+
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
           <div>
-            <h1 className="text-3xl md:text-4xl font-bold text-white">Appointments Management</h1>
+            <h1 className="text-xl md:ml-0 ml-10 md:text-4xl font-bold text-white">Appointments Management</h1>
             <p className="text-gray-400 text-sm md:text-lg">View, edit, and manage all appointments</p>
           </div>
           <div className="flex items-center gap-3">
@@ -137,72 +183,81 @@ export default function AdminAppointmentsPage() {
               </div>
             )}
           </div>
-          <div className="p-4  flex grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-            {/* Search */}
-            <div className=" relative">
+      {/* Filters Grid - Responsive grid layout */}
+          <div className="p-4 space-y-4 sm:space-y-0 sm:grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+            {/* Search - Full width on mobile and sm */}
+            <div className="relative col-span-full lg:col-span-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <input
                 type="text"
                 placeholder="Search appointments..."
                 value={filters.search}
                 onChange={(e) => handleFilterChange("search", e.target.value)}
-                className="pl-10 py-2 rounded bg-gray-800 border border-gray-700 text-white placeholder-gray-400 "
+                className="w-full pl-10 py-2 rounded bg-gray-800 border border-gray-700 text-white placeholder-gray-400"
               />
             </div>
 
             {/* Status Filter */}
-            <select
-              value={filters.status}
-              onChange={(e) => handleFilterChange("status", e.target.value)}
-              className="bg-gray-800 border border-gray-700 text-white rounded px-3 py-2"
-            >
-              <option value="all">All Status</option>
-              <option value="upcoming">Upcoming</option>
-              <option value="today">Today</option>
-              <option value="completed">Completed</option>
-            </select>
+            <div className="w-full">
+              <select
+                value={filters.status}
+                onChange={(e) => handleFilterChange("status", e.target.value)}
+                className="w-full bg-gray-800 border border-gray-700 text-white rounded px-3 py-2"
+              >
+                <option value="all">All Status</option>
+                <option value="upcoming">Upcoming</option>
+                <option value="today">Today</option>
+                <option value="completed">Completed</option>
+              </select>
+            </div>
 
             {/* Store Filter */}
-            <select
-              value={filters.store}
-              onChange={(e) => handleFilterChange("store", e.target.value)}
-              className="bg-gray-800 border border-gray-700 text-white rounded px-3 py-2"
-            >
-              <option value="all">All Stores</option>
-              {stores.map((store) => (
-                <option key={store.id} value={store.id}>
-                  {store.title}
-                </option>
-              ))}
-            </select>
+            <div className="w-full">
+              <select
+                value={filters.store}
+                onChange={(e) => handleFilterChange("store", e.target.value)}
+                className="w-full bg-gray-800 border border-gray-700 text-white rounded px-3 py-2"
+              >
+                <option value="all">All Stores</option>
+                {stores.map((store) => (
+                  <option key={store.id} value={store.id}>
+                    {store.title}
+                  </option>
+                ))}
+              </select>
+            </div>
 
             {/* Barber Filter */}
-            <select
-              value={filters.barber}
-              onChange={(e) => handleFilterChange("barber", e.target.value)}
-              className="bg-gray-800 border border-gray-700 text-white rounded px-3 py-2"
-            >
-              <option value="all">All Barbers</option>
-              {getAllBarbers(stores).map((barber:any) => (
-                <option key={barber} value={barber}>
-                  {barber}
-                </option>
-              ))}
-            </select>
+            <div className="w-full">
+              <select
+                value={filters.barber}
+                onChange={(e) => handleFilterChange("barber", e.target.value)}
+                className="w-full bg-gray-800 border border-gray-700 text-white rounded px-3 py-2"
+              >
+                <option value="all">All Barbers</option>
+                {getAllBarbers(stores).map((barber) => (
+                  <option key={barber} value={barber}>
+                    {barber}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-            {/* Date Range */}
-            <div className="flex gap-2">
+            {/* Date Range - Full width on mobile, two columns on larger screens */}
+            <div className="col-span-full xl:col-span-2 grid grid-cols-2 gap-2">
               <input
                 type="date"
                 value={filters.dateFrom}
                 onChange={(e) => handleFilterChange("dateFrom", e.target.value)}
-                className="bg-gray-800 border border-gray-700 text-white rounded px-3 py-2"
+                className="w-full bg-gray-800 border border-gray-700 text-white rounded px-3 py-2"
+                placeholder="Start date"
               />
               <input
                 type="date"
                 value={filters.dateTo}
                 onChange={(e) => handleFilterChange("dateTo", e.target.value)}
-                className="bg-gray-800 border border-gray-700 text-white rounded px-3 py-2"
+                className="w-full bg-gray-800 border border-gray-700 text-white rounded px-3 py-2"
+                placeholder="End date"
               />
             </div>
           </div>
@@ -228,8 +283,8 @@ export default function AdminAppointmentsPage() {
 
         {/* Appointments Table */}
          <AppointmentsTable
-        //  appointments={filteredAppointments}
-          appointments={appointments}
+          appointments={filteredAppointments}
+          //appointments={appointments}
           stores={stores}
           loading={loading}
           sortField={sortField}

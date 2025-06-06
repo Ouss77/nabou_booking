@@ -43,7 +43,7 @@ export default async function StoreDetailPage({ params }: PageProps) {
       {/* Header */}
       <header className="bg-gray-900 border-b border-gray-800">
         <div className="max-w-7xl mx-auto px-4 py-4">
-          <Link href="/" className="inline-flex items-center gap-2 text-yellow-400 hover:text-yellow-300">
+          <Link href="/barbers" className="inline-flex items-center gap-2 text-yellow-400 hover:text-yellow-300">
             <ArrowLeft className="h-4 w-4" />
             Back to all barbershops
           </Link>

@@ -22,7 +22,7 @@ export default function Header() {
             Customer
           </Link>
           <Link href="/barbers" className="text-sm font-medium hover:text-amber-500">
-            Barber
+            Barber Stores
           </Link>
           <Link href="/admin" className="text-sm font-medium hover:text-amber-500">
             Admin
@@ -56,7 +56,7 @@ export default function Header() {
           <Link href="/" className="text-sm font-medium hover:text-amber-500" onClick={() => setIsOpen(false)}>
             Customer
           </Link>
-          <Link href="/barber" className="text-sm font-medium hover:text-amber-500" onClick={() => setIsOpen(false)}>
+          <Link href="/barbers" className="text-sm font-medium hover:text-amber-500" onClick={() => setIsOpen(false)}>
             Barber
           </Link>
           <Link href="/admin" className="text-sm font-medium hover:text-amber-500" onClick={() => setIsOpen(false)}>
